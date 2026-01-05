@@ -1,10 +1,9 @@
+const barrinhaModal = require('../modals/barrinha.modal');
+
 module.exports = {
   customId: 'design_barrinha',
 
-  async execute(interaction, client) {
-    await interaction.reply({
-      content: '🧩 Botão de **BARRINHA** clicado (teste).',
-      ephemeral: true
-    });
+  async execute(interaction) {
+    await barrinhaModal.execute(interaction);
   }
 };
