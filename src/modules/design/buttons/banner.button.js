@@ -1,10 +1,9 @@
+const bannerModal = require('../modals/banner.modal');
+
 module.exports = {
   customId: 'design_banner',
 
-  async execute(interaction, client) {
-    await interaction.reply({
-      content: '🖼️ Botão de **BANNER** clicado (teste).',
-      ephemeral: true
-    });
+  async execute(interaction) {
+    await bannerModal.execute(interaction);
   }
 };
