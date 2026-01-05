@@ -1,4 +1,9 @@
-const { EmbedBuilder } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
+} = require('discord.js');
 
 module.exports = {
   async send(channel) {
@@ -6,11 +11,26 @@ module.exports = {
       .setTitle('🎨 Painel de Pedidos de Design')
       .setDescription(
         'Para solicitar um design, utilize este painel.\n\n' +
-        'Escolha corretamente o tipo de pedido quando os botões estiverem disponíveis.\n\n' +
+        'Clique em uma das opções abaixo para iniciar seu pedido.\n\n' +
         '⚠️ Pedidos incompletos ou fora do padrão podem ser recusados.'
       )
       .setColor('#d38bff');
 
-    await channel.send({ embeds: [embed] });
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('design_banner')
+        .setLabel('Pedir Banner')
+        .setStyle(ButtonStyle.Primary),
+
+      new ButtonBuilder()
+        .setCustomId('design_barrinha')
+        .setLabel('Pedir Barrinha')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    await channel.send({
+      embeds: [embed],
+      components: [row]
+    });
   }
 };
