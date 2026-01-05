@@ -2,6 +2,9 @@ module.exports = {
   name: 'embeddesign',
 
   async execute(message, client) {
-    await message.reply('🎨 comando embeddesign funcionando');
+    // tenta apagar o comando
+    if (message.deletable) {
+      await message.delete().catch(() => {});
+    }
   }
 };
