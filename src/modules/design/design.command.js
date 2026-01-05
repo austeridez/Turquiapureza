@@ -12,9 +12,11 @@ module.exports = {
       return;
     }
 
-    // tenta apagar a mensagem do comando
-    if (message.deletable) {
-      await message.delete();
-    }
+    // delay curto para garantir que o Discord registrou a mensagem
+    setTimeout(async () => {
+      if (message.deletable) {
+        await message.delete().catch(() => {});
+      }
+    }, 200);
   }
 };
