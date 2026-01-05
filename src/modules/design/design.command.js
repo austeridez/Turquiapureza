@@ -2,7 +2,6 @@ module.exports = {
   name: 'embeddesign',
 
   async execute(message, client) {
-    // IDs permitidos (ajuste depois)
     const OWNERS = ['1430469417149661254'];
     const DEVS = ['1431872681778745496'];
 
@@ -13,7 +12,9 @@ module.exports = {
       return;
     }
 
-    // comando silencioso por enquanto
-    await message.delete().catch(() => {});
+    // tenta apagar a mensagem do comando
+    if (message.deletable) {
+      await message.delete();
+    }
   }
 };
