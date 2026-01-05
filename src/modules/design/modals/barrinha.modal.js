@@ -1,51 +1,64 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder
+} = require('discord.js');
+
+const designService = require('../services/designEmbed.service');
 
 module.exports = {
   customId: 'design_modal_barrinha',
 
   async execute(interaction) {
-    const modal = new ModalBuilder()
-      .setCustomId('design_modal_barrinha')
-      .setTitle('Pedido de Barrinha');
+    // ABRIR MODAL
+    if (!interaction.isModalSubmit()) {
+      const modal = new ModalBuilder()
+        .setCustomId('design_modal_barrinha')
+        .setTitle('Pedido de Barrinha');
 
-    const titulo = new TextInputBuilder()
-      .setCustomId('titulo')
-      .setLabel('Título')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+      const inputs = [
+        ['titulo', 'Título', true],
+        ['tema', 'Tema', true],
+        ['cor', 'Cor', true],
+        ['area', 'Área', true],
+        ['prazo', 'Prazo de entrega', true]
+      ];
 
-    const tema = new TextInputBuilder()
-      .setCustomId('tema')
-      .setLabel('Tema')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+      inputs.forEach(([id, label, required]) => {
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(
+            new TextInputBuilder()
+              .setCustomId(id)
+              .setLabel(label)
+              .setStyle(TextInputStyle.Short)
+              .setRequired(required)
+          )
+        );
+      });
 
-    const cor = new TextInputBuilder()
-      .setCustomId('cor')
-      .setLabel('Cor')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+      return interaction.showModal(modal);
+    }
 
-    const area = new TextInputBuilder()
-      .setCustomId('area')
-      .setLabel('Área')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+    // SUBMIT DO MODAL
+    const dados = {
+      'Título': interaction.fields.getTextInputValue('titulo'),
+      'Tema': interaction.fields.getTextInputValue('tema'),
+      'Cor': interaction.fields.getTextInputValue('cor'),
+      'Área': interaction.fields.getTextInputValue('area'),
+      'Prazo': interaction.fields.getTextInputValue('prazo')
+    };
 
-    const prazo = new TextInputBuilder()
-      .setCustomId('prazo')
-      .setLabel('Prazo de entrega')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(titulo),
-      new ActionRowBuilder().addComponents(tema),
-      new ActionRowBuilder().addComponents(cor),
-      new ActionRowBuilder().addComponents(area),
-      new ActionRowBuilder().addComponents(prazo)
+    await designService.sendPedido(
+      interaction.client,
+      'Barrinha',
+      interaction.user,
+      dados
     );
 
-    await interaction.showModal(modal);
+    await interaction.reply({
+      content: '✅ Seu pedido de **Barrinha** foi enviado!',
+      ephemeral: true
+    });
   }
 };
