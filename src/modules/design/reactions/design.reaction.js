@@ -1,18 +1,13 @@
 const { DESIGN_EMOJI } = require('../design.constants');
 const { EmbedBuilder } = require('discord.js');
 
-function getResponsaveisField(embed) {
-  const fields = embed.fields ?? [];
-  return fields.find(f => f.name === 'Design responsáveis');
+function getFieldIndex(embed) {
+  return embed.fields.findIndex(f => f.name === 'Design responsáveis');
 }
 
-function parseMentions(value = '') {
+function parse(value) {
   if (!value || value === '—') return [];
   return value.split('\n').filter(Boolean);
-}
-
-function buildMentions(users) {
-  return users.length ? users.join('\n') : '—';
 }
 
 module.exports = {
@@ -24,22 +19,27 @@ module.exports = {
     if (!message.embeds?.length) return;
 
     const embed = EmbedBuilder.from(message.embeds[0]);
-    const field = getResponsaveisField(embed);
+    const index = getFieldIndex(embed);
+    if (index === -1) return;
 
     const mention = `<@${user.id}>`;
-    let list = field ? parseMentions(field.value) : [];
+    const current = parse(embed.fields[index].value);
 
-    if (!list.includes(mention)) list.push(mention);
-
-    if (field) {
-      embed.spliceFields(
-        embed.fields.findIndex(f => f.name === 'Design responsáveis'),
-        1,
-        { name: 'Design responsáveis', value: buildMentions(list), inline: false }
-      );
-    } else {
-      embed.addFields({ name: 'Design responsáveis', value: buildMentions(list), inline: false });
+    if (!current.includes(mention)) {
+      current.push(mention);
     }
+
+    // remove reação do bot
+    const botReaction = message.reactions.cache.get(DESIGN_EMOJI);
+    if (botReaction) {
+      await botReaction.users.remove(message.client.user.id).catch(() => {});
+    }
+
+    embed.spliceFields(index, 1, {
+      name: 'Design responsáveis',
+      value: current.join('\n'),
+      inline: false
+    });
 
     await message.edit({ embeds: [embed] });
   },
@@ -52,17 +52,28 @@ module.exports = {
     if (!message.embeds?.length) return;
 
     const embed = EmbedBuilder.from(message.embeds[0]);
-    const field = getResponsaveisField(embed);
-    if (!field) return;
+    const index = getFieldIndex(embed);
+    if (index === -1) return;
 
     const mention = `<@${user.id}>`;
-    let list = parseMentions(field.value).filter(m => m !== mention);
+    let current = parse(embed.fields[index].value).filter(m => m !== mention);
 
-    embed.spliceFields(
-      embed.fields.findIndex(f => f.name === 'Design responsáveis'),
-      1,
-      { name: 'Design responsáveis', value: buildMentions(list), inline: false }
-    );
+    if (current.length === 0) {
+      embed.spliceFields(index, 1, {
+        name: 'Design responsáveis',
+        value: '—',
+        inline: false
+      });
+
+      // bot reage de novo se ninguém pegou
+      await message.react(DESIGN_EMOJI).catch(() => {});
+    } else {
+      embed.spliceFields(index, 1, {
+        name: 'Design responsáveis',
+        value: current.join('\n'),
+        inline: false
+      });
+    }
 
     await message.edit({ embeds: [embed] });
   }
