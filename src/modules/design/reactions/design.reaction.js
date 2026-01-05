@@ -1,32 +1,52 @@
 const { DESIGN_EMOJI } = require('../design.constants');
 const { EmbedBuilder } = require('discord.js');
 
-function getFieldIndex(embed) {
+function getResponsaveisIndex(embed) {
   return embed.fields.findIndex(f => f.name === 'Design responsáveis');
 }
 
-function parse(value) {
+function parseList(value) {
   if (!value || value === '—') return [];
   return value.split('\n').filter(Boolean);
 }
 
 module.exports = {
-  async add(reaction, user) {
+  async add(reaction, user, client) {
     if (user.bot) return;
+
+    // garante reaction completa
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch {
+        return;
+      }
+    }
+
     if (reaction.emoji.name !== DESIGN_EMOJI) return;
 
     const message = reaction.message;
-    if (!message.embeds?.length) return;
+
+    // garante message completa
+    if (message.partial) {
+      try {
+        await message.fetch();
+      } catch {
+        return;
+      }
+    }
+
+    if (!message.embeds.length) return;
 
     const embed = EmbedBuilder.from(message.embeds[0]);
-    const index = getFieldIndex(embed);
+    const index = getResponsaveisIndex(embed);
     if (index === -1) return;
 
     const mention = `<@${user.id}>`;
-    const current = parse(embed.fields[index].value);
+    let list = parseList(embed.fields[index].value);
 
-    if (!current.includes(mention)) {
-      current.push(mention);
+    if (!list.includes(mention)) {
+      list.push(mention);
     }
 
     // remove reação do bot
@@ -37,40 +57,60 @@ module.exports = {
 
     embed.spliceFields(index, 1, {
       name: 'Design responsáveis',
-      value: current.join('\n'),
+      value: list.join('\n'),
       inline: false
     });
 
     await message.edit({ embeds: [embed] });
   },
 
-  async remove(reaction, user) {
+  async remove(reaction, user, client) {
     if (user.bot) return;
+
+    // garante reaction completa
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch {
+        return;
+      }
+    }
+
     if (reaction.emoji.name !== DESIGN_EMOJI) return;
 
     const message = reaction.message;
-    if (!message.embeds?.length) return;
+
+    // garante message completa
+    if (message.partial) {
+      try {
+        await message.fetch();
+      } catch {
+        return;
+      }
+    }
+
+    if (!message.embeds.length) return;
 
     const embed = EmbedBuilder.from(message.embeds[0]);
-    const index = getFieldIndex(embed);
+    const index = getResponsaveisIndex(embed);
     if (index === -1) return;
 
     const mention = `<@${user.id}>`;
-    let current = parse(embed.fields[index].value).filter(m => m !== mention);
+    let list = parseList(embed.fields[index].value).filter(m => m !== mention);
 
-    if (current.length === 0) {
+    if (list.length === 0) {
       embed.spliceFields(index, 1, {
         name: 'Design responsáveis',
         value: '—',
         inline: false
       });
 
-      // bot reage de novo se ninguém pegou
+      // bot reage de novo
       await message.react(DESIGN_EMOJI).catch(() => {});
     } else {
       embed.spliceFields(index, 1, {
         name: 'Design responsáveis',
-        value: current.join('\n'),
+        value: list.join('\n'),
         inline: false
       });
     }
