@@ -16,5 +16,9 @@ module.exports = (client) => {
   client.interactions.set(bannerModal.customId, bannerModal);
   client.interactions.set(barrinhaModal.customId, barrinhaModal);
 
+  // reações
+  const designReaction = require('./reactions/design.reaction');
+  client.reactionHandlers.push(designReaction);
+
   console.log('📦 Comandos registrados:', [...client.prefixCommands.keys()]);
 };
