@@ -1,51 +1,64 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder
+} = require('discord.js');
+
+const designService = require('../services/designEmbed.service');
 
 module.exports = {
   customId: 'design_modal_banner',
 
   async execute(interaction) {
-    const modal = new ModalBuilder()
-      .setCustomId('design_modal_banner')
-      .setTitle('Pedido de Banner');
+    // ABRIR MODAL
+    if (!interaction.isModalSubmit()) {
+      const modal = new ModalBuilder()
+        .setCustomId('design_modal_banner')
+        .setTitle('Pedido de Banner');
 
-    const titulo = new TextInputBuilder()
-      .setCustomId('titulo')
-      .setLabel('Título')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+      const inputs = [
+        ['titulo', 'Título', true],
+        ['subtitulo', 'Subtítulo (opcional)', false],
+        ['tema', 'Tema', true],
+        ['cor', 'Cor', true],
+        ['resolucao', 'Resolução', true]
+      ];
 
-    const subtitulo = new TextInputBuilder()
-      .setCustomId('subtitulo')
-      .setLabel('Subtítulo (opcional)')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(false);
+      inputs.forEach(([id, label, required]) => {
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(
+            new TextInputBuilder()
+              .setCustomId(id)
+              .setLabel(label)
+              .setStyle(TextInputStyle.Short)
+              .setRequired(required)
+          )
+        );
+      });
 
-    const tema = new TextInputBuilder()
-      .setCustomId('tema')
-      .setLabel('Tema')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+      return interaction.showModal(modal);
+    }
 
-    const cor = new TextInputBuilder()
-      .setCustomId('cor')
-      .setLabel('Cor')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+    // SUBMIT DO MODAL
+    const dados = {
+      'Título': interaction.fields.getTextInputValue('titulo'),
+      'Subtítulo': interaction.fields.getTextInputValue('subtitulo') || '—',
+      'Tema': interaction.fields.getTextInputValue('tema'),
+      'Cor': interaction.fields.getTextInputValue('cor'),
+      'Resolução': interaction.fields.getTextInputValue('resolucao')
+    };
 
-    const resolucao = new TextInputBuilder()
-      .setCustomId('resolucao')
-      .setLabel('Resolução')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(titulo),
-      new ActionRowBuilder().addComponents(subtitulo),
-      new ActionRowBuilder().addComponents(tema),
-      new ActionRowBuilder().addComponents(cor),
-      new ActionRowBuilder().addComponents(resolucao)
+    await designService.sendPedido(
+      interaction.client,
+      'Banner',
+      interaction.user,
+      dados
     );
 
-    await interaction.showModal(modal);
+    await interaction.reply({
+      content: '✅ Seu pedido de **Banner** foi enviado!',
+      ephemeral: true
+    });
   }
 };
