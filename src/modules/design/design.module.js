@@ -7,12 +7,14 @@ module.exports = (client) => {
   // botões
   const bannerButton = require('./buttons/banner.button');
   const barrinhaButton = require('./buttons/barrinha.button');
-
   client.interactions.set(bannerButton.customId, bannerButton);
   client.interactions.set(barrinhaButton.customId, barrinhaButton);
 
-  console.log(
-    '📦 Comandos registrados no DESIGN:',
-    [...client.prefixCommands.keys()]
-  );
+  // modais
+  const bannerModal = require('./modals/banner.modal');
+  const barrinhaModal = require('./modals/barrinha.modal');
+  client.interactions.set(bannerModal.customId, bannerModal);
+  client.interactions.set(barrinhaModal.customId, barrinhaModal);
+
+  console.log('📦 Comandos registrados:', [...client.prefixCommands.keys()]);
 };
