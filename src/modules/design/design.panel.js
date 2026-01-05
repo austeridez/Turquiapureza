@@ -5,8 +5,8 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setTitle('🎨 Painel de Pedidos de Design')
       .setDescription(
-        'Utilize este painel para solicitar artes com a equipe de design.\n\n' +
-        'Escolha corretamente o tipo de pedido e preencha todas as informações solicitadas.\n\n' +
+        'Para solicitar um design, utilize este painel.\n\n' +
+        'Escolha corretamente o tipo de pedido quando os botões estiverem disponíveis.\n\n' +
         '⚠️ Pedidos incompletos ou fora do padrão podem ser recusados.'
       )
       .setColor('#d38bff');
