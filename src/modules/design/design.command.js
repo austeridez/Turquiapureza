@@ -4,8 +4,8 @@ module.exports = {
   name: 'embeddesign',
 
   async execute(message, client) {
-    const OWNERS = ['SEU_ID_AQUI'];
-    const DEVS = ['SEU_ID_AQUI'];
+    const OWNERS = ['1430469417149661254'];
+    const DEVS = ['1431872681778745496'];
 
     if (
       !OWNERS.includes(message.author.id) &&
