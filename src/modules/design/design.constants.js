@@ -1,0 +1,3 @@
+module.exports = {
+  PEDIDOS_CHANNEL_ID: '1457560431726956788'
+};
