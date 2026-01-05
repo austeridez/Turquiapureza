@@ -2,6 +2,9 @@ const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
+/* ===============================
+   🤖 CLIENT
+=============================== */
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -16,6 +19,9 @@ const client = new Client({
   ]
 });
 
+/* ===============================
+   🧠 COLEÇÕES GLOBAIS
+=============================== */
 client.prefixCommands = new Map();
 client.interactions = new Map();
 client.reactionHandlers = [];
@@ -41,24 +47,30 @@ for (const moduleName of modules) {
 }
 
 /* ===============================
-   📡 EVENTOS
+   📡 EVENTOS (CARREGADOS UMA VEZ)
 =============================== */
-client.on('ready', () => require('./events/ready')(client));
+const readyEvent = require('./events/ready');
+const interactionCreateEvent = require('./events/interactionCreate');
+const messageCreateEvent = require('./events/messageCreate');
+const reactionAddEvent = require('./events/reactionAdd');
+const reactionRemoveEvent = require('./events/reactionRemove');
+
+client.once('ready', () => readyEvent(client));
 
 client.on('interactionCreate', (interaction) =>
-  require('./events/interactionCreate')(interaction, client)
+  interactionCreateEvent(interaction, client)
 );
 
 client.on('messageCreate', (message) =>
-  require('./events/messageCreate')(message, client)
+  messageCreateEvent(message, client)
 );
 
 client.on('messageReactionAdd', (reaction, user) =>
-  require('./events/reactionAdd')(reaction, user, client)
+  reactionAddEvent(reaction, user, client)
 );
 
 client.on('messageReactionRemove', (reaction, user) =>
-  require('./events/reactionRemove')(reaction, user, client)
+  reactionRemoveEvent(reaction, user, client)
 );
 
 /* ===============================
