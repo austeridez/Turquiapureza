@@ -16,11 +16,7 @@ module.exports = {
     if (user.bot) return;
 
     if (reaction.partial) {
-      try {
-        await reaction.fetch();
-      } catch {
-        return;
-      }
+      try { await reaction.fetch(); } catch { return; }
     }
 
     if (reaction.emoji.name !== DESIGN_EMOJI) return;
@@ -28,11 +24,7 @@ module.exports = {
     const message = reaction.message;
 
     if (message.partial) {
-      try {
-        await message.fetch();
-      } catch {
-        return;
-      }
+      try { await message.fetch(); } catch { return; }
     }
 
     if (!message.embeds.length) return;
@@ -49,12 +41,6 @@ module.exports = {
       list.push(mention);
     }
 
-    // remove reação do bot
-    const botReaction = message.reactions.cache.get(DESIGN_EMOJI);
-    if (botReaction) {
-      await botReaction.users.remove(message.client.user.id).catch(() => {});
-    }
-
     fields[index].value = list.join('\n');
 
     await message.edit({ embeds: [embed] });
@@ -64,11 +50,7 @@ module.exports = {
     if (user.bot) return;
 
     if (reaction.partial) {
-      try {
-        await reaction.fetch();
-      } catch {
-        return;
-      }
+      try { await reaction.fetch(); } catch { return; }
     }
 
     if (reaction.emoji.name !== DESIGN_EMOJI) return;
@@ -76,11 +58,7 @@ module.exports = {
     const message = reaction.message;
 
     if (message.partial) {
-      try {
-        await message.fetch();
-      } catch {
-        return;
-      }
+      try { await message.fetch(); } catch { return; }
     }
 
     if (!message.embeds.length) return;
@@ -93,12 +71,7 @@ module.exports = {
     const mention = `<@${user.id}>`;
     let list = parseList(fields[index].value).filter(m => m !== mention);
 
-    if (list.length === 0) {
-      fields[index].value = '—';
-      await message.react(DESIGN_EMOJI).catch(() => {});
-    } else {
-      fields[index].value = list.join('\n');
-    }
+    fields[index].value = list.length ? list.join('\n') : '—';
 
     await message.edit({ embeds: [embed] });
   }
