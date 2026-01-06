@@ -2,7 +2,8 @@ const { DESIGN_EMOJI } = require('../design.constants');
 const { EmbedBuilder } = require('discord.js');
 
 function getResponsaveisIndex(embed) {
-  return embed.fields.findIndex(f => f.name === 'Design responsáveis');
+  const fields = embed.data.fields ?? [];
+  return fields.findIndex(f => f.name === 'Design responsáveis');
 }
 
 function parseList(value) {
@@ -11,10 +12,9 @@ function parseList(value) {
 }
 
 module.exports = {
-  async add(reaction, user, client) {
+  async add(reaction, user) {
     if (user.bot) return;
 
-    // garante reaction completa
     if (reaction.partial) {
       try {
         await reaction.fetch();
@@ -27,7 +27,6 @@ module.exports = {
 
     const message = reaction.message;
 
-    // garante message completa
     if (message.partial) {
       try {
         await message.fetch();
@@ -42,8 +41,9 @@ module.exports = {
     const index = getResponsaveisIndex(embed);
     if (index === -1) return;
 
+    const fields = embed.data.fields;
     const mention = `<@${user.id}>`;
-    let list = parseList(embed.fields[index].value);
+    let list = parseList(fields[index].value);
 
     if (!list.includes(mention)) {
       list.push(mention);
@@ -55,19 +55,14 @@ module.exports = {
       await botReaction.users.remove(message.client.user.id).catch(() => {});
     }
 
-    embed.spliceFields(index, 1, {
-      name: 'Design responsáveis',
-      value: list.join('\n'),
-      inline: false
-    });
+    fields[index].value = list.join('\n');
 
     await message.edit({ embeds: [embed] });
   },
 
-  async remove(reaction, user, client) {
+  async remove(reaction, user) {
     if (user.bot) return;
 
-    // garante reaction completa
     if (reaction.partial) {
       try {
         await reaction.fetch();
@@ -80,7 +75,6 @@ module.exports = {
 
     const message = reaction.message;
 
-    // garante message completa
     if (message.partial) {
       try {
         await message.fetch();
@@ -95,24 +89,15 @@ module.exports = {
     const index = getResponsaveisIndex(embed);
     if (index === -1) return;
 
+    const fields = embed.data.fields;
     const mention = `<@${user.id}>`;
-    let list = parseList(embed.fields[index].value).filter(m => m !== mention);
+    let list = parseList(fields[index].value).filter(m => m !== mention);
 
     if (list.length === 0) {
-      embed.spliceFields(index, 1, {
-        name: 'Design responsáveis',
-        value: '—',
-        inline: false
-      });
-
-      // bot reage de novo
+      fields[index].value = '—';
       await message.react(DESIGN_EMOJI).catch(() => {});
     } else {
-      embed.spliceFields(index, 1, {
-        name: 'Design responsáveis',
-        value: list.join('\n'),
-        inline: false
-      });
+      fields[index].value = list.join('\n');
     }
 
     await message.edit({ embeds: [embed] });
