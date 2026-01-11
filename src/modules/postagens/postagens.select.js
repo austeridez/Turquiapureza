@@ -4,7 +4,6 @@ module.exports = {
   customId: 'postagens_menu',
 
   async execute(interaction) {
-    // já responde a interação para evitar "falhou"
     await interaction.deferReply({ ephemeral: true });
 
     const member = await interaction.guild.members.fetch(interaction.user.id);
@@ -20,32 +19,64 @@ module.exports = {
 
     if (!message.embeds.length) {
       return interaction.editReply({
-        content: '❌ Embed do cronograma não encontrada.'
+        content: '❌ Cronograma não encontrado.'
       });
     }
 
-    let text = message.embeds[0].description;
+    let description = message.embeds[0].description;
 
-    // horário já ocupado
-    if (!text.includes(`${selected} (<@>)`)) {
+    if (!description.includes(`${selected} (<@>)`)) {
       return interaction.editReply({
-        content: '❌ Este horário já possui responsável.'
+        content: '❌ Este horário já foi assumido.'
       });
     }
 
     // assume o horário
-    text = text.replace(
+    description = description.replace(
       `${selected} (<@>)`,
       `${selected} (<@${interaction.user.id}>)`
     );
 
+    // recria embed
+    const embed = {
+      color: message.embeds[0].color,
+      description
+    };
+
+    // recria menu com base no novo texto
+    const gerarMenu = (desc) => {
+      const { ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+      const regex = /\(([^)]+)\)\s-\s([^(]+)\s\(<@>\)/g;
+      const options = [];
+      let m;
+
+      while ((m = regex.exec(desc)) !== null) {
+        const horario = m[1].trim();
+        const materia = m[2].trim();
+        options.push({
+          label: horario,
+          description: materia,
+          value: `(${horario}) - ${materia}`
+        });
+      }
+
+      if (!options.length) return [];
+
+      return [
+        new ActionRowBuilder().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId('postagens_menu')
+            .setPlaceholder('Selecione um horário disponível')
+            .addOptions(options)
+        )
+      ];
+    };
+
+    const components = gerarMenu(description);
+
     await message.edit({
-      embeds: [
-        {
-          color: message.embeds[0].color,
-          description: text
-        }
-      ]
+      embeds: [embed],
+      components
     });
 
     await interaction.editReply({
