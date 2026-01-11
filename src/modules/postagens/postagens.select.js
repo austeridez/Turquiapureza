@@ -4,32 +4,36 @@ module.exports = {
   customId: 'postagens_menu',
 
   async execute(interaction) {
+    // já responde a interação para evitar "falhou"
+    await interaction.deferReply({ ephemeral: true });
+
     const member = await interaction.guild.members.fetch(interaction.user.id);
 
-    // permissão
     if (!member.roles.cache.has(JORNALISMO_ROLE_ID)) {
-      return interaction.reply({
-        content: '❌ Apenas membros do **Jornalismo** podem assumir horários.',
-        ephemeral: true
+      return interaction.editReply({
+        content: '❌ Apenas membros do **Jornalismo** podem assumir horários.'
       });
     }
 
     const selected = interaction.values[0];
     const message = interaction.message;
 
-    if (!message.embeds.length) return;
-
-    let text = message.embeds[0].description;
-
-    // horário já ocupado?
-    if (!text.includes(`${selected} (<@>)`)) {
-      return interaction.reply({
-        content: '❌ Este horário já possui responsável.',
-        ephemeral: true
+    if (!message.embeds.length) {
+      return interaction.editReply({
+        content: '❌ Embed do cronograma não encontrada.'
       });
     }
 
-    // substitui <@> pelo usuário
+    let text = message.embeds[0].description;
+
+    // horário já ocupado
+    if (!text.includes(`${selected} (<@>)`)) {
+      return interaction.editReply({
+        content: '❌ Este horário já possui responsável.'
+      });
+    }
+
+    // assume o horário
     text = text.replace(
       `${selected} (<@>)`,
       `${selected} (<@${interaction.user.id}>)`
@@ -44,9 +48,8 @@ module.exports = {
       ]
     });
 
-    await interaction.reply({
-      content: '✅ Você assumiu este horário.',
-      ephemeral: true
+    await interaction.editReply({
+      content: '✅ Você assumiu este horário.'
     });
   }
 };
