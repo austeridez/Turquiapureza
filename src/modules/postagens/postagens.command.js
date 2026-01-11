@@ -4,17 +4,43 @@ const {
   StringSelectMenuBuilder
 } = require('discord.js');
 
-// CANAL DO CRONOGRAMA OFICIAL
+// ===== CONFIGURAÇÕES =====
 const CRONOGRAMA_CHANNEL_ID = '1449807522281033759';
 
-// CARGOS DE GESTÃO
 const GESTAO_ROLES = [
   '1448673656153837578',
   '1448823932298985644'
 ];
 
-// guardamos o ID da embed oficial
+// guarda o ID da embed oficial (em memória por enquanto)
 let cronogramaMessageId = null;
+
+// ===== FUNÇÃO PARA GERAR MENU DINÂMICO =====
+function gerarMenu(description) {
+  const regex = /\(([^)]+)\)\s-\s([^(]+)\s\(<@>\)/g;
+  const options = [];
+
+  let match;
+  while ((match = regex.exec(description)) !== null) {
+    const horario = match[1].trim();
+    const materia = match[2].trim();
+
+    options.push({
+      label: horario,
+      description: materia,
+      value: `(${horario}) - ${materia}`
+    });
+  }
+
+  if (options.length === 0) return [];
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('postagens_menu')
+    .setPlaceholder('Selecione um horário disponível')
+    .addOptions(options);
+
+  return [new ActionRowBuilder().addComponents(menu)];
+}
 
 module.exports = {
   name: 'postagenssemanal',
@@ -35,7 +61,7 @@ module.exports = {
 
     const channel = await client.channels.fetch(CRONOGRAMA_CHANNEL_ID);
 
-    // ===== EMBED BASE (MODELO FIXO) =====
+    // ===== EMBED OFICIAL (MODELO FIXO) =====
     const embed = new EmbedBuilder()
       .setColor('#d38bff')
       .setDescription(
@@ -71,44 +97,14 @@ module.exports = {
 <:bponto:1459927986576036021> (Qualquer Horário) - Turquia Vote (<@>)`
       );
 
-    // ===== MENU (ETAPA 3) =====
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId('postagens_menu')
-      .setPlaceholder('Selecione um horário')
-      .addOptions(
-        {
-          label: 'Segunda-feira — 08h00 às 22h00',
-          value: '(08h00 - 22h00) - Turquia Vote'
-        },
-        {
-          label: 'Terça-feira — 07h30 às 15h00',
-          value: '(07h30 - 15h00) - Turquia Talk'
-        },
-        {
-          label: 'Terça-feira — 19h00 às 00h00',
-          value: '(19h00 - 00h00) - Turquia Vote'
-        },
-        {
-          label: 'Quarta-feira — Qualquer Horário',
-          value: '(Qualquer Horário) - Turquia Talk'
-        },
-        {
-          label: 'Quinta-feira — Qualquer horário',
-          value: '(Qualquer horário) - Turquia Vote'
-        },
-        {
-          label: 'Sexta-feira — Qualquer Horário',
-          value: '(Qualquer Horário) - Turquia Vote'
-        }
-      );
-
-    const row = new ActionRowBuilder().addComponents(menu);
+    // ===== MENU BASEADO NA EMBED =====
+    const components = gerarMenu(embed.data.description);
 
     // ===== CRIA OU EDITA A MESMA EMBED =====
     if (!cronogramaMessageId) {
       const msg = await channel.send({
         embeds: [embed],
-        components: [row]
+        components
       });
       cronogramaMessageId = msg.id;
       return;
@@ -118,12 +114,12 @@ module.exports = {
       const msg = await channel.messages.fetch(cronogramaMessageId);
       await msg.edit({
         embeds: [embed],
-        components: [row]
+        components
       });
     } catch {
       const msg = await channel.send({
         embeds: [embed],
-        components: [row]
+        components
       });
       cronogramaMessageId = msg.id;
     }
