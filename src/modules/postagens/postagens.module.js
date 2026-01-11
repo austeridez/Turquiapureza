@@ -1,0 +1,6 @@
+module.exports = (client) => {
+  console.log('🗓️ Módulo POSTAGENS carregado');
+
+  const command = require('./postagens.command');
+  client.prefixCommands.set(command.name, command);
+};
