@@ -15,21 +15,36 @@ const GESTAO_ROLES = [
 // guarda o ID da embed oficial (em memória por enquanto)
 let cronogramaMessageId = null;
 
-// ===== FUNÇÃO PARA GERAR MENU DINÂMICO =====
+// ===== FUNÇÃO PARA GERAR MENU DINÂMICO COM DIA =====
 function gerarMenu(description) {
-  const regex = /\(([^)]+)\)\s-\s([^(]+)\s\(<@>\)/g;
+  const lines = description.split('\n');
+
+  let diaAtual = null;
   const options = [];
 
-  let match;
-  while ((match = regex.exec(description)) !== null) {
-    const horario = match[1].trim();
-    const materia = match[2].trim();
+  const regexDia = /\*\*Dia da semana:\s*(.+?)\.\*\*/;
+  const regexHorario = /\(([^)]+)\)\s-\s([^(]+)\s\(<@>\)/;
 
-    options.push({
-      label: horario,
-      description: materia,
-      value: `(${horario}) - ${materia}`
-    });
+  for (const line of lines) {
+    // detecta o dia
+    const diaMatch = line.match(regexDia);
+    if (diaMatch) {
+      diaAtual = diaMatch[1].trim();
+      continue;
+    }
+
+    // detecta horários livres
+    const horarioMatch = line.match(regexHorario);
+    if (horarioMatch && diaAtual) {
+      const horario = horarioMatch[1].trim();
+      const materia = horarioMatch[2].trim();
+
+      options.push({
+        label: `${diaAtual} | ${horario}`,
+        description: materia,
+        value: `(${horario}) - ${materia}`
+      });
+    }
   }
 
   if (options.length === 0) return [];
@@ -97,7 +112,6 @@ module.exports = {
 <:bponto:1459927986576036021> (Qualquer Horário) - Turquia Vote (<@>)`
       );
 
-    // ===== MENU BASEADO NA EMBED =====
     const components = gerarMenu(embed.data.description);
 
     // ===== CRIA OU EDITA A MESMA EMBED =====
