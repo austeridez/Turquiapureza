@@ -45,7 +45,22 @@ module.exports = {
 -# <:p_heart:1459929023533682758> **Dia da semana: Terça-feira.**
 -# <:p_heart:1459929023533682758> **Tema: livre**
 <:bponto:1459927986576036021> (07h30 - 15h00) - Turquia Talk (<@>)
-<:bponto:1459927986576036021> (19h00 - 00h00) - Turquia Vote (<@>)`
+<:bponto:1459927986576036021> (19h00 - 00h00) - Turquia Vote (<@>)
+
+### <:letter_q:1459927432021672051> <:letter_u:1459927542495580345> <:letter_a:1459926629580017714> <:letter_r:1459927462908530848> <:letter_t:1459927514959839444> <:letter_a:1459926629580017714>
+-# <:p_heart:1459929023533682758> **Dia da semana: Quarta-feira.**
+-# <:p_heart:1459929023533682758> **Tema: férias**
+<:bponto:1459927986576036021> (Qualquer Horário) - Turquia Talk (<@>)
+
+### <:letter_q:1459927432021672051> <:letter_u:1459927542495580345> <:letter_i:1459926908962607244> <:letter_n:1459927080614494310> <:letter_t:1459927514959839444> <:letter_a:1459926629580017714>
+-# <:p_heart:1459929023533682758> **Dia da semana: Quinta-feira.**
+-# <:p_heart:1459929023533682758> **Tema: livre**
+<:bponto:1459927986576036021> (Qualquer horário) - Turquia Vote (<@>)
+
+### <:letter_s:1459927489013879036> <:letter_e:1459926761986068533> <:letter_x:1459927624175452242> <:letter_t:1459927514959839444> <:letter_a:1459926629580017714>
+-# <:p_heart:1459929023533682758> **Dia da semana: Sexta-feira.**
+-# <:p_heart:1459929023533682758> **Tema: livre**
+<:bponto:1459927986576036021> (Qualquer Horário) - Turquia Vote (<@>)`
       );
 
     const components = gerarMenu(embed.data.description);
