@@ -1,13 +1,16 @@
-const { EmbedBuilder } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder
+} = require('discord.js');
 
-// CONFIGURAÇÕES FIXAS DA ETAPA 1
 const CRONOGRAMA_CHANNEL_ID = '1449807522281033759';
+
 const GESTAO_ROLES = [
   '1448673656153837578',
   '1448823932298985644'
 ];
 
-// vamos guardar o ID da embed em memória por enquanto
 let cronogramaMessageId = null;
 
 module.exports = {
@@ -20,18 +23,14 @@ module.exports = {
       member.roles.cache.has(roleId)
     );
 
-    if (!hasPermission) {
-      return;
-    }
+    if (!hasPermission) return;
 
-    // apaga o comando
     if (message.deletable) {
       await message.delete().catch(() => {});
     }
 
     const channel = await client.channels.fetch(CRONOGRAMA_CHANNEL_ID);
 
-    // EMBED BASE (placeholder da Etapa 1)
     const embed = new EmbedBuilder()
       .setColor('#d38bff')
       .setDescription(
@@ -40,22 +39,61 @@ module.exports = {
 -# <:a_invi:1459927934629318697> ︶︶𝆺𝅥︶﹒︶︶𝆹𝅥︶﹒<a:sylveon_lurk:1459928424390070314> ﹒︶𝆹𝅥︶︶﹒︶𝆺𝅥︶︶
 <:a_invi:1459927934629318697> 𐔌   ۪   ׂ 𓈒 𖦹˙ **Escolha o seu dia de postagem!**
 
-*(Etapa 1 – embed base de teste)*`
+*(Etapa 2 – menu de teste)*`
       );
 
-    // se ainda não existe, cria
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId('postagens_menu')
+      .setPlaceholder('Selecione um horário')
+      .addOptions(
+        {
+          label: 'Segunda-feira — 08h00 às 22h00',
+          value: 'Segunda-feira (08h00–22h00) — Turquia Vote'
+        },
+        {
+          label: 'Terça-feira — 07h30 às 15h00',
+          value: 'Terça-feira (07h30–15h00) — Turquia Talk'
+        },
+        {
+          label: 'Terça-feira — 19h00 às 00h00',
+          value: 'Terça-feira (19h00–00h00) — Turquia Vote'
+        },
+        {
+          label: 'Quarta-feira — Qualquer horário',
+          value: 'Quarta-feira (Qualquer horário) — Turquia Talk'
+        },
+        {
+          label: 'Quinta-feira — Qualquer horário',
+          value: 'Quinta-feira (Qualquer horário) — Turquia Vote'
+        },
+        {
+          label: 'Sexta-feira — Qualquer horário',
+          value: 'Sexta-feira (Qualquer horário) — Turquia Vote'
+        }
+      );
+
+    const row = new ActionRowBuilder().addComponents(menu);
+
     if (!cronogramaMessageId) {
-      const msg = await channel.send({ embeds: [embed] });
+      const msg = await channel.send({
+        embeds: [embed],
+        components: [row]
+      });
       cronogramaMessageId = msg.id;
       return;
     }
 
-    // se já existe, edita
     try {
       const msg = await channel.messages.fetch(cronogramaMessageId);
-      await msg.edit({ embeds: [embed] });
+      await msg.edit({
+        embeds: [embed],
+        components: [row]
+      });
     } catch {
-      const msg = await channel.send({ embeds: [embed] });
+      const msg = await channel.send({
+        embeds: [embed],
+        components: [row]
+      });
       cronogramaMessageId = msg.id;
     }
   }
