@@ -10,12 +10,15 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessageReactions
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers // 🔑 ESSENCIAL
   ],
   partials: [
     Partials.Message,
     Partials.Channel,
-    Partials.Reaction
+    Partials.Reaction,
+    Partials.GuildMember,
+    Partials.User
   ]
 });
 
@@ -47,7 +50,7 @@ for (const moduleName of modules) {
 }
 
 /* ===============================
-   📡 EVENTOS (CARREGADOS UMA VEZ)
+   📡 EVENTOS
 =============================== */
 const readyEvent = require('./events/ready');
 const interactionCreateEvent = require('./events/interactionCreate');
@@ -55,23 +58,26 @@ const messageCreateEvent = require('./events/messageCreate');
 const reactionAddEvent = require('./events/reactionAdd');
 const reactionRemoveEvent = require('./events/reactionRemove');
 
-client.once('ready', () => readyEvent(client));
+client.once('ready', () => {
+  console.log(`🤖 Bot logado como ${client.user.tag}`);
+  readyEvent(client);
+});
 
-client.on('interactionCreate', (interaction) =>
-  interactionCreateEvent(interaction, client)
-);
+client.on('interactionCreate', async (interaction) => {
+  interactionCreateEvent(interaction, client);
+});
 
-client.on('messageCreate', (message) =>
-  messageCreateEvent(message, client)
-);
+client.on('messageCreate', async (message) => {
+  messageCreateEvent(message, client);
+});
 
-client.on('messageReactionAdd', (reaction, user) =>
-  reactionAddEvent(reaction, user, client)
-);
+client.on('messageReactionAdd', async (reaction, user) => {
+  reactionAddEvent(reaction, user, client);
+});
 
-client.on('messageReactionRemove', (reaction, user) =>
-  reactionRemoveEvent(reaction, user, client)
-);
+client.on('messageReactionRemove', async (reaction, user) => {
+  reactionRemoveEvent(reaction, user, client);
+});
 
 /* ===============================
    🚀 LOGIN
