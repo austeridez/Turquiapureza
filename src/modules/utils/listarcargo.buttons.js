@@ -1,18 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-async function obterMembrosDoCargo(guild, roleId) {
-  const role = guild.roles.cache.get(roleId);
-  if (!role) return [];
-
-  // primeiro tenta cache
-  let membros = [...role.members.values()];
-
-  // se já tem bastante, não força fetch geral
-  if (membros.length > 0) return membros;
-
-  // fallback seguro: busca em partes
+async function buscarMembrosComCargo(guild, roleId) {
+  const membros = [];
   let lastId;
+
   while (true) {
     const fetched = await guild.members.fetch({
       limit: 1000,
@@ -49,7 +41,7 @@ module.exports = {
       return interaction.editReply('❌ Cargo não encontrado.');
     }
 
-    const membros = await obterMembrosDoCargo(
+    const membros = await buscarMembrosComCargo(
       interaction.guild,
       roleId
     );
@@ -63,22 +55,27 @@ module.exports = {
     const lista = membros.map(member => {
       switch (interaction.customId) {
         case 'listar_mencionar':
-          return `${member}`;
+          return `<@${member.id}>`;
+
         case 'listar_mencionar_id':
-          return `${member} (${member.id})`;
+          return `<@${member.id}> (${member.id})`;
+
         case 'listar_apenas_id':
           return member.id;
+
         case 'listar_mencionar_cargo':
-          return `${member} — ${role.name}`;
+          return `<@${member.id}> — ${role.name}`;
       }
     });
 
     const texto = lista.join('\n');
 
+    // envia direto se couber
     if (texto.length < 1800) {
       return interaction.editReply(texto);
     }
 
+    // senão envia em TXT
     const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
     const caminho = path.join(__dirname, nomeArquivo);
 
