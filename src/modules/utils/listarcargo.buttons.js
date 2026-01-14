@@ -3,23 +3,26 @@ const path = require('path');
 
 async function buscarMembrosComCargo(guild, roleId) {
   const membros = [];
-  let lastId;
+  let after = undefined;
 
   while (true) {
     const fetched = await guild.members.fetch({
       limit: 1000,
-      after: lastId
-    }).catch(() => null);
+      after
+    });
 
-    if (!fetched || fetched.size === 0) break;
-
+    // percorre o lote
     for (const member of fetched.values()) {
       if (member.roles.cache.has(roleId)) {
         membros.push(member);
       }
     }
 
-    lastId = fetched.last().id;
+    // se veio menos que 1000, acabou
+    if (fetched.size < 1000) break;
+
+    // avança o cursor
+    after = fetched.last().id;
   }
 
   return membros;
@@ -56,13 +59,10 @@ module.exports = {
       switch (interaction.customId) {
         case 'listar_mencionar':
           return `<@${member.id}>`;
-
         case 'listar_mencionar_id':
           return `<@${member.id}> (${member.id})`;
-
         case 'listar_apenas_id':
           return member.id;
-
         case 'listar_mencionar_cargo':
           return `<@${member.id}> — ${role.name}`;
       }
@@ -70,12 +70,12 @@ module.exports = {
 
     const texto = lista.join('\n');
 
-    // envia direto se couber
+    // se couber, manda direto
     if (texto.length < 1800) {
       return interaction.editReply(texto);
     }
 
-    // senão envia em TXT
+    // senão, manda em TXT
     const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
     const caminho = path.join(__dirname, nomeArquivo);
 
