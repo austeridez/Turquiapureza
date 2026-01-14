@@ -17,26 +17,33 @@ module.exports = {
       return interaction.editReply('❌ Cargo não encontrado.');
     }
 
+    // 🔴 FORÇA BUSCAR TODOS OS MEMBROS (OBRIGATÓRIO)
+    const allMembers = await interaction.guild.members.fetch({ force: true });
+
+    // 🔴 FILTRA MANUALMENTE PELO CARGO
+    const membros = allMembers.filter(member =>
+      member.roles.cache.has(roleId)
+    );
+
+    if (!membros.size) {
+      return interaction.editReply(
+        '❌ Nenhum membro com esse cargo foi encontrado.'
+      );
+    }
+
     const role = interaction.guild.roles.cache.get(roleId);
-    if (!role) {
-      return interaction.editReply('❌ Cargo inválido.');
-    }
 
-    // usa o que o Discord tem em cache (estável)
-    const membros = [...role.members.values()];
-
-    if (!membros.length) {
-      return interaction.editReply('❌ Nenhum membro encontrado.');
-    }
-
-    const lista = membros.map(member => {
+    const lista = [...membros.values()].map(member => {
       switch (interaction.customId) {
         case 'listar_mencionar':
           return `<@${member.id}>`;
+
         case 'listar_mencionar_id':
           return `<@${member.id}> (${member.id})`;
+
         case 'listar_apenas_id':
           return member.id;
+
         case 'listar_mencionar_cargo':
           return `<@${member.id}> — ${role.name}`;
       }
@@ -44,18 +51,18 @@ module.exports = {
 
     const texto = lista.join('\n');
 
-    // 🔹 TENTA enviar como mensagem normal
+    // 🔹 tenta enviar normal
     try {
       await interaction.editReply(texto);
-    } catch (err) {
-      // 🔹 SE ESTOURAR LIMITE → TXT
+    } catch {
+      // 🔹 se estourar limite, envia TXT
       const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
       const caminho = path.join(__dirname, nomeArquivo);
 
       fs.writeFileSync(caminho, texto, 'utf8');
 
       await interaction.editReply({
-        content: '📄 Lista grande demais, enviada em arquivo:',
+        content: '📄 Lista completa enviada em arquivo:',
         files: [caminho]
       });
 
