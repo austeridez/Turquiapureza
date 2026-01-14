@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 module.exports = {
   customId: [
     'listar_mencionar',
@@ -8,6 +11,9 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
+
+    // 🔹 FORÇA CARREGAR TODOS OS MEMBROS
+    await interaction.guild.members.fetch();
 
     const roleId = interaction.client.listarCargoRole;
     if (!roleId) {
@@ -36,9 +42,24 @@ module.exports = {
       return interaction.editReply('❌ Nenhum membro com esse cargo.');
     }
 
-    // evita mensagem gigante
-    const texto = members.join('\n').slice(0, 1900);
+    const texto = members.join('\n');
 
-    await interaction.editReply(texto);
+    // 🔹 se couber, envia direto
+    if (texto.length < 1800) {
+      return interaction.editReply(texto);
+    }
+
+    // 🔹 se não couber, gera TXT
+    const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
+    const caminho = path.join(__dirname, nomeArquivo);
+
+    fs.writeFileSync(caminho, texto, 'utf8');
+
+    await interaction.editReply({
+      content: '📄 Lista completa enviada em arquivo:',
+      files: [caminho]
+    });
+
+    fs.unlinkSync(caminho);
   }
 };
