@@ -1,33 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-async function buscarMembrosComCargo(guild, roleId) {
-  const membros = [];
-  let after = undefined;
-
-  while (true) {
-    const fetched = await guild.members.fetch({
-      limit: 1000,
-      after
-    });
-
-    // percorre o lote
-    for (const member of fetched.values()) {
-      if (member.roles.cache.has(roleId)) {
-        membros.push(member);
-      }
-    }
-
-    // se veio menos que 1000, acabou
-    if (fetched.size < 1000) break;
-
-    // avança o cursor
-    after = fetched.last().id;
-  }
-
-  return membros;
-}
-
 module.exports = {
   customId: [
     'listar_mencionar',
@@ -44,16 +17,17 @@ module.exports = {
       return interaction.editReply('❌ Cargo não encontrado.');
     }
 
-    const membros = await buscarMembrosComCargo(
-      interaction.guild,
-      roleId
-    );
-
-    if (!membros.length) {
-      return interaction.editReply('❌ Nenhum membro com esse cargo.');
+    const role = interaction.guild.roles.cache.get(roleId);
+    if (!role) {
+      return interaction.editReply('❌ Cargo inválido.');
     }
 
-    const role = interaction.guild.roles.cache.get(roleId);
+    // usa o que o Discord tem em cache (estável)
+    const membros = [...role.members.values()];
+
+    if (!membros.length) {
+      return interaction.editReply('❌ Nenhum membro encontrado.');
+    }
 
     const lista = membros.map(member => {
       switch (interaction.customId) {
@@ -70,22 +44,22 @@ module.exports = {
 
     const texto = lista.join('\n');
 
-    // se couber, manda direto
-    if (texto.length < 1800) {
-      return interaction.editReply(texto);
+    // 🔹 TENTA enviar como mensagem normal
+    try {
+      await interaction.editReply(texto);
+    } catch (err) {
+      // 🔹 SE ESTOURAR LIMITE → TXT
+      const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
+      const caminho = path.join(__dirname, nomeArquivo);
+
+      fs.writeFileSync(caminho, texto, 'utf8');
+
+      await interaction.editReply({
+        content: '📄 Lista grande demais, enviada em arquivo:',
+        files: [caminho]
+      });
+
+      fs.unlinkSync(caminho);
     }
-
-    // senão, manda em TXT
-    const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
-    const caminho = path.join(__dirname, nomeArquivo);
-
-    fs.writeFileSync(caminho, texto, 'utf8');
-
-    await interaction.editReply({
-      content: '📄 Lista completa enviada em arquivo:',
-      files: [caminho]
-    });
-
-    fs.unlinkSync(caminho);
   }
 };
