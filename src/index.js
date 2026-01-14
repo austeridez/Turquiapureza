@@ -57,6 +57,7 @@ const interactionCreateEvent = require('./events/interactionCreate');
 const messageCreateEvent = require('./events/messageCreate');
 const reactionAddEvent = require('./events/reactionAdd');
 const reactionRemoveEvent = require('./events/reactionRemove');
+const guildMemberAddEvent = require('./events/guildMemberAdd'); // 👈 NOVO
 
 client.once('ready', () => {
   console.log(`🤖 Bot logado como ${client.user.tag}`);
@@ -77,6 +78,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 client.on('messageReactionRemove', async (reaction, user) => {
   reactionRemoveEvent(reaction, user, client);
+});
+
+// 👋 ENTRADA DE MEMBRO (BOAS-VINDAS + LOG)
+client.on('guildMemberAdd', async (member) => {
+  guildMemberAddEvent(member, client);
 });
 
 /* ===============================
