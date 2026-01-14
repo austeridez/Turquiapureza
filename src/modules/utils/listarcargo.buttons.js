@@ -1,6 +1,38 @@
 const fs = require('fs');
 const path = require('path');
 
+async function obterMembrosDoCargo(guild, roleId) {
+  const role = guild.roles.cache.get(roleId);
+  if (!role) return [];
+
+  // primeiro tenta cache
+  let membros = [...role.members.values()];
+
+  // se já tem bastante, não força fetch geral
+  if (membros.length > 0) return membros;
+
+  // fallback seguro: busca em partes
+  let lastId;
+  while (true) {
+    const fetched = await guild.members.fetch({
+      limit: 1000,
+      after: lastId
+    }).catch(() => null);
+
+    if (!fetched || fetched.size === 0) break;
+
+    for (const member of fetched.values()) {
+      if (member.roles.cache.has(roleId)) {
+        membros.push(member);
+      }
+    }
+
+    lastId = fetched.last().id;
+  }
+
+  return membros;
+}
+
 module.exports = {
   customId: [
     'listar_mencionar',
@@ -12,20 +44,23 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    // 🔹 FORÇA CARREGAR TODOS OS MEMBROS
-    await interaction.guild.members.fetch();
-
     const roleId = interaction.client.listarCargoRole;
     if (!roleId) {
       return interaction.editReply('❌ Cargo não encontrado.');
     }
 
-    const role = interaction.guild.roles.cache.get(roleId);
-    if (!role) {
-      return interaction.editReply('❌ Cargo inválido.');
+    const membros = await obterMembrosDoCargo(
+      interaction.guild,
+      roleId
+    );
+
+    if (!membros.length) {
+      return interaction.editReply('❌ Nenhum membro com esse cargo.');
     }
 
-    const members = role.members.map(member => {
+    const role = interaction.guild.roles.cache.get(roleId);
+
+    const lista = membros.map(member => {
       switch (interaction.customId) {
         case 'listar_mencionar':
           return `${member}`;
@@ -38,18 +73,12 @@ module.exports = {
       }
     });
 
-    if (!members.length) {
-      return interaction.editReply('❌ Nenhum membro com esse cargo.');
-    }
+    const texto = lista.join('\n');
 
-    const texto = members.join('\n');
-
-    // 🔹 se couber, envia direto
     if (texto.length < 1800) {
       return interaction.editReply(texto);
     }
 
-    // 🔹 se não couber, gera TXT
     const nomeArquivo = `lista-${role.name.replace(/\s+/g, '_')}.txt`;
     const caminho = path.join(__dirname, nomeArquivo);
 
