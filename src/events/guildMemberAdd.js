@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = async (member) => {
-  const CANAL_LOG = 'ID_DO_CANAL_DE_LOG';
+  const CANAL_LOG = '1460895024739909737';
   const CANAL_GERAL = '1457838314320171368';
   const CANAL_BOAS_VINDAS = '1460895024739909737';
 
